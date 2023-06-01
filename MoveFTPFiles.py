@@ -31,11 +31,11 @@ def download_ftp_files(ftp, remote_dir, local_dir):
     ftp.cwd(remote_dir)
 
     # Create the local directory if it doesn't exist
-    logging.debug(f"Creating local directory: {local_dir}")
-    os.makedirs(local_dir, exist_ok=True)
+    # logging.debug(f"Creating local directory: {local_dir}")
+    # os.makedirs(local_dir, exist_ok=True)
 
     # List all files and folders in the current directory
-    items = ftp.nlist()
+    items = ftp.nlst()
 
     # Iterate over each item
     for item in items:
@@ -47,7 +47,7 @@ def download_ftp_files(ftp, remote_dir, local_dir):
             logging.debug(f"Checking if {item} is a directory")
             ftp.cwd(full_path)
             logging.debug(f"{item} is a directory, calling download_ftp_files recursively")
-            download_ftp_files(ftp, full_path, os.path.join(local_dir, item))
+            download_ftp_files(ftp, full_path, local_dir)
             logging.debug(f"Changing back to parent directory")
             ftp.cwd('..') # Return to the parent directory
         except:
@@ -57,6 +57,8 @@ def download_ftp_files(ftp, remote_dir, local_dir):
             with open(local_filename, 'wb') as f:
                 ftp.retrbinary('RETR ' + item, f.write)
             logging.info(f"Successfully downloaded file: {item}")
+            logging.info(f"Deleting file: {item}")
+            ftp.delete(item)
 
 def main():
     # Connect to the FTP server
