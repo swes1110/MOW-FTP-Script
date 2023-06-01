@@ -30,10 +30,6 @@ def download_ftp_files(ftp, remote_dir, local_dir):
     logging.debug(f"Changing to remote directory: {remote_dir}")
     ftp.cwd(remote_dir)
 
-    # Create the local directory if it doesn't exist
-    # logging.debug(f"Creating local directory: {local_dir}")
-    # os.makedirs(local_dir, exist_ok=True)
-
     # List all files and folders in the current directory
     items = ftp.nlst()
 
