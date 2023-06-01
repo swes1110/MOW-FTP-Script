@@ -19,9 +19,6 @@ logging.info(
     'Server Address: ' + config['DEFAULT']['ServerAddress']
 )
 logging.info(
-    'Server Port: ' + config['DEFAULT']['ServerPort']
-)
-logging.info(
     'Destination Path: ' + config['DEFAULT']['DestinationPath']
 )
 logging.debug(
@@ -68,7 +65,7 @@ def main():
     ftp.login()
 
     # Download all files from the FTP server
-    logging.info(f"Downloading all files from FTP server: {config['DEFAULT']['ServerAddress']}:{config['DEFAULT']['ServerPort']}")
+    logging.info(f"Downloading all files from FTP server: {config['DEFAULT']['ServerAddress']}")
     download_ftp_files(ftp, config['DEFAULT']['ServerPath'], config['DEFAULT']['DestinationPath'])
 
     # Disconnect from the FTP server
