@@ -55,16 +55,18 @@ def download_ftp_files(ftp, remote_dir, local_dir):
                 ftp.retrbinary('RETR ' + item, f.write)
             logging.info(f"Successfully downloaded file: {item}")
             logging.info(f"Uploading file: {item}")
-            upload_blob(local_filename)
+            upload_blob(local_filename, local_dir, item)
             logging.info(f"Deleting file: {item}")
             ftp.delete(item)
             os.remove(local_filename)
             logging.info(f"Successfully deleted file: {item}")
 
-def upload_blob(local_filename):
+def upload_blob(local_filename, local_dir, item):
+    logger = logging.getLogger("azure.storage")
+    logger.setLevel(logging.ERROR)
     service = BlobServiceClient.from_connection_string(config['AZURESTORAGEACCOUNT']['ConnectionString'])
     container_client = service.get_container_client(config['AZURESTORAGEACCOUNT']['ContainerName'])
-    blob_client = container_client.get_blob_client(local_filename)
+    blob_client = container_client.get_blob_client(item)
 
     logging.info(f"Uploading file to blob storage: {local_filename}")
     with open(file=local_filename, mode="rb") as data:
