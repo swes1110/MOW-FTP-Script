@@ -2,7 +2,7 @@ import configparser
 import logging
 import os
 from ftplib import FTP
-from azure.storage.blob import BlobServiceClient
+from azure.storage.blob import BlobServiceClient, ContentSettings
 
 logging.basicConfig(level=logging.INFO)
 logging.info(
@@ -67,10 +67,11 @@ def upload_blob(local_filename, local_dir, item):
     service = BlobServiceClient.from_connection_string(config['AZURESTORAGEACCOUNT']['ConnectionString'])
     container_client = service.get_container_client(config['AZURESTORAGEACCOUNT']['ContainerName'])
     blob_client = container_client.get_blob_client(item)
+    cnt_settings = ContentSettings(content_type="video/mp4")
 
     logging.info(f"Uploading file to blob storage: {local_filename}")
     with open(file=local_filename, mode="rb") as data:
-        blob_client.upload_blob(data)
+        blob_client.upload_blob(data, content_settings=cnt_settings)
 
 def main():
     # Connect to the FTP server
