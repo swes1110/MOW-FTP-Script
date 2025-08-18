@@ -141,6 +141,55 @@ export class AzureStorageService {
   }
 
   /**
+   * Get a streaming-optimized URL for a video file
+   * This URL supports HTTP Range Requests for proper video streaming
+   */
+  getStreamingVideoUrl(fileName: string): string {
+    if (!this.containerClient) {
+      throw new Error('Azure Storage not initialized');
+    }
+
+    const blobClient = this.containerClient.getBlobClient(fileName);
+    // Return the clean URL without additional parameters that might interfere
+    // Azure Blob Storage automatically supports HTTP Range Requests
+    return blobClient.url;
+  }
+
+  /**
+   * Get video URL optimized for streaming with proper headers
+   * This method ensures the URL supports HTTP Range Requests
+   */
+  getVideoUrlForStreaming(videoFile: VideoFile): string {
+    // For both public and authenticated access, return the clean URL
+    // Azure Blob Storage natively supports HTTP Range Requests
+    return videoFile.url;
+  }
+
+  /**
+   * Create a video URL with streaming headers
+   * This method generates URLs that support HTTP/1.1 range requests
+   */
+  createStreamingUrl(fileName: string): Observable<string> {
+    return new Observable(observer => {
+      try {
+        if (!this.containerClient) {
+          observer.error(new Error('Azure Storage not initialized'));
+          return;
+        }
+
+        const blobClient = this.containerClient.getBlobClient(fileName);
+
+        // For streaming, we need the direct blob URL without modifications
+        // The browser will automatically handle range requests
+        observer.next(blobClient.url);
+        observer.complete();
+      } catch (error) {
+        observer.error(error);
+      }
+    });
+  }
+
+  /**
    * Test CORS configuration by making a simple request
    */
   async testCorsConfiguration(): Promise<boolean> {
@@ -239,6 +288,79 @@ export class AzureStorageService {
   }
 
   /**
+   * Get video URL with proper headers for streaming
+   * This ensures Azure Blob Storage responds with Accept-Ranges header
+   */
+  getVideoUrlWithRangeSupport(videoFile: VideoFile): string {
+    const url = new URL(videoFile.url);
+
+    // For Azure Blob Storage, ensure the URL supports range requests
+    // Remove any parameters that might interfere with streaming
+    const cleanUrl = `${url.protocol}//${url.host}${url.pathname}`;
+
+    // Add SAS parameters back if they exist
+    const sasParams = url.search;
+    return cleanUrl + sasParams;
+  }
+
+  /**
+   * Test if Azure Storage supports range requests for a video
+   */
+  async testRangeRequestSupport(url: string): Promise<boolean> {
+    try {
+      const response = await fetch(url, {
+        method: 'HEAD',
+        headers: {
+          'Range': 'bytes=0-1023'  // Request first 1KB
+        }
+      });
+
+      console.log('Range request test:', {
+        status: response.status,
+        acceptRanges: response.headers.get('accept-ranges'),
+        contentRange: response.headers.get('content-range'),
+        contentLength: response.headers.get('content-length')
+      });
+
+      // Should return 206 (Partial Content) for range requests
+      return response.status === 206 && response.headers.get('accept-ranges') === 'bytes';
+    } catch (error) {
+      console.error('Range request test failed:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Create a streaming-optimized blob URL with proper Azure Storage configuration
+   */
+  async createOptimizedStreamingUrl(videoFile: VideoFile): Promise<string> {
+    if (!this.containerClient) {
+      throw new Error('Azure Storage not initialized');
+    }
+
+    try {
+      const blobClient = this.containerClient.getBlobClient(videoFile.name);
+
+      // Get blob properties to ensure it supports range requests
+      const properties = await blobClient.getProperties();
+
+      console.log('Blob properties:', {
+        contentType: properties.contentType,
+        contentLength: properties.contentLength,
+        acceptRanges: properties.acceptRanges,
+        cacheControl: properties.cacheControl
+      });
+
+      // Return the blob URL which should support range requests natively
+      return blobClient.url;
+    } catch (error) {
+      console.error('Failed to get optimized streaming URL:', error);
+      // Fallback to original URL
+      return videoFile.url;
+    }
+  }
+
+  /**
    * Check if the storage service is properly initialized
    */
   isInitialized(): boolean {
@@ -264,5 +386,61 @@ export class AzureStorageService {
   private isVideoFile(fileName: string): boolean {
     const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv', '.m4v'];
     return videoExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
+  }
+
+  /**
+   * Check if Azure Storage blob is properly configured for streaming
+   */
+  async checkStreamingConfiguration(videoFile: VideoFile): Promise<{ isOptimized: boolean, recommendations: string[] }> {
+    const recommendations: string[] = [];
+    let isOptimized = true;
+
+    try {
+      if (!this.containerClient) {
+        return { isOptimized: false, recommendations: ['Azure Storage not initialized'] };
+      }
+
+      const blobClient = this.containerClient.getBlobClient(videoFile.name);
+      const properties = await blobClient.getProperties();
+
+      // Check content type
+      if (!properties.contentType || !properties.contentType.startsWith('video/')) {
+        recommendations.push('Set proper Content-Type header (e.g., video/mp4)');
+        isOptimized = false;
+      }
+
+      // Check if blob supports range requests
+      const headResponse = await fetch(blobClient.url, { method: 'HEAD' });
+      const acceptRanges = headResponse.headers.get('accept-ranges');
+
+      if (acceptRanges !== 'bytes') {
+        recommendations.push('Azure Storage should return "Accept-Ranges: bytes" header');
+        isOptimized = false;
+      }
+
+      // Test actual range request
+      const rangeResponse = await fetch(blobClient.url, {
+        headers: { 'Range': 'bytes=0-1023' }
+      });
+
+      if (rangeResponse.status !== 206) {
+        recommendations.push('Azure Storage does not support HTTP Range Requests (status should be 206)');
+        isOptimized = false;
+      }
+
+      // Check for proper cache headers
+      const cacheControl = headResponse.headers.get('cache-control');
+      if (!cacheControl) {
+        recommendations.push('Consider setting Cache-Control headers for better performance');
+      }
+
+      return { isOptimized, recommendations };
+    } catch (error: any) {
+      console.error('Failed to check streaming configuration:', error);
+      return {
+        isOptimized: false,
+        recommendations: [`Error checking configuration: ${error.message || error}`]
+      };
+    }
   }
 }

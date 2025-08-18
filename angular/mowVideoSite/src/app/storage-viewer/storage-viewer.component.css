@@ -259,6 +259,40 @@
   width: 100%;
   height: 100%;
   border-radius: 12px;
+  object-fit: contain;
+  background-color: #000;
+}
+
+.video-player[data-streaming="true"] {
+  /* Visual indicator for streaming mode */
+  border: 2px solid #667eea;
+}
+
+/* Loading indicator for video player */
+.video-player-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.video-player-wrapper.loading::before {
+  opacity: 1;
+}
+
+/* Buffering indicator */
+.video-player::-webkit-media-controls-panel {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .video-info {
@@ -309,6 +343,12 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  pointer-events: none; /* Prevent accidental play on thumbnails */
+}
+
+.video-card:hover .thumbnail-video {
+  /* Only load thumbnail when hovering for better performance */
+  filter: brightness(1.1);
 }
 
 .play-icon {
@@ -438,4 +478,10 @@
 @keyframes fa-spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Spin animation for loading */
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }

@@ -133,10 +133,10 @@
       </div>
       <div class="video-player-wrapper">
         <video
-          [src]="selectedVideo.url"
           controls
-          preload="metadata"
-          class="video-player">
+          preload="none"
+          class="video-player"
+          #videoPlayer>
           Your browser does not support the video tag.
         </video>
       </div>
@@ -157,8 +157,8 @@
         <div class="video-thumbnail">
           <i class="fas fa-play-circle play-icon"></i>
           <video
-            [src]="video.url"
-            preload="metadata"
+            [src]="getStreamingUrl(video)"
+            preload="none"
             muted
             class="thumbnail-video">
           </video>
@@ -170,6 +170,10 @@
             <span class="file-size">{{ formatFileSize(video.size) }}</span>
             <span class="file-date">{{ video.lastModified | date:'short' }}</span>
           </div>
+          <!-- Debug button (remove in production) -->
+          <button (click)="debugVideoPlayback(video)" class="btn-secondary" style="margin-top: 0.5rem; font-size: 0.7rem;">
+            Debug Video
+          </button>
         </div>
       </div>
     </div>
