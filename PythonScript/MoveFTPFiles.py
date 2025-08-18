@@ -4,7 +4,7 @@ import os
 from ftplib import FTP
 from azure.storage.blob import BlobServiceClient, ContentSettings
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR) # Change to logging.DEBUG for more verbose logging (less secure)
 logging.info(
     'Starting MoveFTPFiles.py'
 )
@@ -54,10 +54,11 @@ def download_ftp_files(ftp, remote_dir, local_dir):
             with open(local_filename, 'wb') as f:
                 ftp.retrbinary('RETR ' + item, f.write)
             logging.info(f"Successfully downloaded file: {item}")
+            logging.info(f"Deleting file: {item} from FTP server")
+            ftp.delete(item)
             logging.info(f"Uploading file: {item}")
             upload_blob(local_filename, local_dir, item)
             logging.info(f"Deleting file: {item}")
-            ftp.delete(item)
             os.remove(local_filename)
             logging.info(f"Successfully deleted file: {item}")
 
