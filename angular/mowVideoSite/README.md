@@ -5,13 +5,11 @@ A modern, responsive Angular application for browsing and playing video files st
 ## ✨ Features
 
 - 🔐 **Secure Authentication**: Connect using Azure SAS URLs or connection strings
-- 🎥 **Video Streaming**: True streaming support with HTTP Range Requests (no full download required)
+- 🎥 **Video Streaming**: Stream videos directly from Azure Blob Storage
 - 📱 **Responsive Design**: Modern UI that works on desktop and mobile devices
 - 🖼️ **Video Thumbnails**: Generate video previews for better browsing experience
 - 🎨 **Modern Interface**: Beautiful gradient design with glassmorphism effects
-- ⚡ **Performance**: Efficient async loading, streaming optimization, and error handling
-- 🌐 **CORS Support**: Built-in CORS handling and testing for Azure Storage
-- 🎛️ **Streaming Controls**: Optimized video player with buffering indicators and progress tracking
+- ⚡ **Performance**: Efficient async loading and error handling
 
 ## 🚀 Quick Start
 
@@ -67,21 +65,6 @@ The application supports two authentication methods:
 3. **Browse Videos**: View all available videos in a responsive grid layout
 4. **Play Videos**: Click on any video thumbnail to start playback
 5. **Video Controls**: Use the built-in HTML5 video player controls
-
-### 🎥 Video Streaming Features
-
-- **True Streaming**: Videos start playing immediately without downloading the entire file
-- **HTTP Range Requests**: Supports seeking to any position in the video instantly
-- **Buffering Indicators**: Visual feedback on video loading progress
-- **Adaptive Loading**: Thumbnails load on-demand for better performance
-- **CORS Optimized**: Automatic CORS configuration testing and optimization
-
-### 📱 Performance Optimizations
-
-- **Lazy Thumbnail Loading**: Video thumbnails only load when needed
-- **Metadata Preloading**: Only essential video metadata is preloaded
-- **Streaming URLs**: Optimized URLs for maximum streaming performance
-- **Range Request Support**: Full support for HTTP/1.1 range requests
 
 ## 📁 Supported Video Formats
 
