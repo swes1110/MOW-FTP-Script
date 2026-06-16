@@ -4,7 +4,8 @@ import { AzureStorageService, VideoFile } from '../services/azure-storage.servic
 @Component({
   selector: 'app-storage-viewer',
   templateUrl: './storage-viewer.component.html',
-  styleUrls: ['./storage-viewer.component.css']
+  styleUrls: ['./storage-viewer.component.css'],
+  standalone: false
 })
 export class StorageViewerComponent implements OnInit {
   videoFiles: VideoFile[] = [];
